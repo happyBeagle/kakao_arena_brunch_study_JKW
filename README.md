@@ -13,10 +13,15 @@ $> tree -d
 │      ├── users.json
 ├── preprocessing.py : model 학습을 위한 전처리 (통합), 주석 처리
 ├── /model
-│      ├── model_1.py : 김남혁 님의 추천 시스템
-│      ├── model_2.py : 우종빈 님의 추천 시스템
-│      └── model_3.py : 조민정 님의 추천 시스템
-├── train.py
+│      ├── /user2vec
+│      │      ├── user2vec.py
+│      │      └── inference.py
+│      ├── /model
+│      │      ├── model.py 
+│      │      └── inference.py
+│      └── /mf
+│             ├── mf.py
+│             └── inference.py
 ├── ensemble.py : model_1.py + model_2.py + model_3.py
 ├── evaluate.py : MAP, NDCG, EntDiv
 ├── main.py

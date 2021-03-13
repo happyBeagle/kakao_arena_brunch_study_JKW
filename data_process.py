@@ -9,7 +9,30 @@ from collections import defaultdict
 import utils
 
 class Data_processing():
-    def get_meta_data(self, file_path : str):
+    def __init__(self, dir_path : str):
+        current_func_name = sys._getframe.f_code.co_name
+
+        if not os.path.exists(file_path):
+            print(f"[Error] {current_func_name} : file is not exist ==> file path :{dir_path}")
+            raise FileNotFoundError
+        
+        self.__dir_path = dir_path
+        self.set_util_data()
+
+    def set_util_data(self):
+        self.set_meta_data(os.path.join(self.__dir_path, "metadata.json"))
+        self.set_user_data(os.path.join(self.__dir_path, "users.json"))
+        self.set_read_data(os.path.join(self.__dir_path, "read/"))
+
+
+    def set_MF_model_data(self, weight_followee = 2):
+        self.set_following_list()
+        self.set_writer_by_letter()
+        self.set_rating_table(self, is_train = True, weight_followee = weight_followee)
+        self.set_rating_table(self, is_train = False, weight_followee = weight_followee)
+
+
+    def set_meta_data(self, file_path : str):
         current_func_name = sys._getframe.f_code.co_name
 
         if not utils.check_file(file_path, ".json", current_func_name):
@@ -17,12 +40,10 @@ class Data_processing():
         
         meta_data = pd.read_json(file_path, lines=True)
 
-        self.meta_data = meta_data
-
-        return meta_data  
+        self.__meta_data = meta_data
 
 
-    def get_user_data(self, file_path : str):
+    def set_user_data(self, file_path : str):
         current_func_name = sys._getframe.f_code.co_name
 
         if not utils.check_file(file_path, ".json", current_func_name):
@@ -30,9 +51,7 @@ class Data_processing():
 
         user_data = pd.read_json(file_path, lines=True)
 
-        self.user_data = user_data  
-
-        return user_data
+        self.__user_data = user_data  
 
 
     def preprocess_read_data(self, file_path : str):
@@ -68,7 +87,7 @@ class Data_processing():
         return True
 
 
-    def split_read_data(self, read_data, split_date: int):
+    def split_read_data(self, read_data : str, split_date: int):
         read_data["tmp_file_name"] = read_data["file_name"].apply(lambda x : int(x[:8]))
 
         read_train_data = read_data[read_data["tmp_file_name"] < split_date]
@@ -77,7 +96,7 @@ class Data_processing():
         return read_train_data, read_test_data
 
 
-    def get_read_data(self, file_path : str, split_date: int):
+    def set_read_data(self, file_path : str, split_date: int):
         #####################################
         # load read data
         # input :
@@ -93,13 +112,11 @@ class Data_processing():
         
         read_train_data, read_test_data = self.split_read_data(read_data, split_date)
 
-        self.read_train_data = read_train_data
-        self.read_test_data = read_test_data
-
-        return read_train_data, read_test_data
+        self.__read_train_data = read_train_data
+        self.__read_test_data = read_test_data
 
         
-    def get_writer_by_letter(self):
+    def set_writer_by_letter(self):
         #################################
         # return:
         #   dict(str, list[str]) --> key : writer, value : list of letter id
@@ -116,10 +133,10 @@ class Data_processing():
                 writer_data[writer] = []
             writer_data[writer].append(letter)
         
-        return writer_data
+        self.__letter_by_writer = writer_data
+ 
 
-
-    def get_following_list(self):
+    def set_following_list(self):
         following_list = {}
 
         user_data = self.user_data
@@ -129,10 +146,10 @@ class Data_processing():
             followings = data['following_list']
             following_list[user_id] = followings
 
-        return following_list
+        self.__following_list = following_list
 
 
-    def get_rating_table(self, is_train: bool, weight_followee: int):
+    def set_rating_table(self, is_train: bool, weight_followee: int):
 
         user_read_list = defaultdict(int)
         userToIndex = {}
@@ -148,15 +165,18 @@ class Data_processing():
 
         user_idx = 0
         writer_idx = 0
-        
+        user_origin_read = {}
+
         for idx, data in read_data.iterrows():
             user_id = data["user_id"]
             content_id_list = data["content_id"]
             if user_id not in userToIndex:
                 userToIndex[user_id] = user_idx
+                user_origin_read[user_id] = set()
                 user_idx += 1
             user_id = userToIndex[user_id]
             for content_id in content_id_list:
+                user_origin_read[user_id].insert(content_id)
                 writer = content_id[:content_id.find("_")]
                 if writer not in writerToIndex:
                     writerToIndex[writer] = writer_idx
@@ -167,6 +187,10 @@ class Data_processing():
                     user_read_list[key] += weight_followee
                 else:
                     user_read_list[key] += 1 
+
+        self.__user_set = userToIndex
+        self.__item_set = writerToIndex
+        self.__user_origin_read = user_origin_read
 
         user_list = []
         writer_list = []
@@ -184,4 +208,61 @@ class Data_processing():
         rating_data = {"user_id": user_list, "writer_id": writer_list, "rate": read_count_list}
         rating_data = pd.DataFrame(rating_data)
 
-        return rating_data
+        if is_train:
+            self.__train_rating = rating_data
+        else:
+            self.__test_rating = rating_data
+
+
+    def get_user_origin_read(self, user_id):
+        return self.__user_origin_read[user_id]
+
+
+    @property
+    def read_test_data(self):
+        return self.__read_test_data
+
+
+    @property
+    def read_train_data(self):
+        return self.__read_train_data
+
+    
+    @property
+    def users_data(self):
+        return self.__user_data
+
+    
+    @property
+    def meta_data(self):
+        return self.__meta_data
+
+
+    @property
+    def train_rating_table(self):
+        return self.__train_rating
+    
+
+    @property
+    def test_rating_table(self):
+        return self.__test_rating
+
+
+    @property
+    def following_list(self):
+        return self.__following_list
+
+
+    @property
+    def user_to_index(self):
+        return self.__user_set
+
+
+    @property
+    def writer_to_index(self):
+        return self.__item_set
+
+
+    @property
+    def letter_by_writer(self):
+        return self.__letter_by_writer

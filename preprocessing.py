@@ -8,9 +8,9 @@ from collections import defaultdict
 
 import utils
 
-class Data_processing():
+class Preprocessing():
     def __init__(self, dir_path : str):
-        current_func_name = "Data_processing: __init__"
+        current_func_name = "Preprocessing: __init__"
 
         if not os.path.exists(dir_path):
             print(f"[Error] {current_func_name} : file is not exist ==> file path :{dir_path}")
@@ -33,7 +33,7 @@ class Data_processing():
 
 
     def set_meta_data(self, file_path : str):
-        current_func_name = "Data processing : set_meta_data"
+        current_func_name = "Preprocessing: set_meta_data"
 
         if not utils.check_file(file_path, ".json", current_func_name):
             return
@@ -44,7 +44,7 @@ class Data_processing():
 
 
     def set_user_data(self, file_path : str):
-        current_func_name = "Data processing : set_user_data"
+        current_func_name = "Preprocessing: set_user_data"
 
         if not utils.check_file(file_path, ".json", current_func_name):
             return
@@ -61,7 +61,7 @@ class Data_processing():
         #   file_path : path of read directory
         ###############################
         print("[Info] preprocess_read_data Start.....")
-        current_func_name = "Data processing : preprocess_read_data"
+        current_func_name = "Preprocessing: preprocess_read_data"
         file_path = os.path.join(dir_path, "read/")
 
         if not os.path.exists(file_path):
@@ -105,7 +105,7 @@ class Data_processing():
         # input :
         #   file_path : read pkl data
         #####################################
-        current_func_name = "Data processing : set_read_data"
+        current_func_name = "Preprocessing: set_read_data"
 
         if not utils.check_file(file_path, ".pkl", current_func_name):
            if not self.preprocess_read_data(dir_path):

@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
 
-class MF_model(nn.module):
-    def __init__(self, num_users, nums_items, emb_size = 100):
-        super(MF_model, self).__init__()
+class MF(nn.Module):
+    def __init__(self, num_users, num_items, emb_size = 100):
+        super(MF, self).__init__()
         self.users_emb = nn.Embedding(num_users, emb_size)
         self.items_emb = nn.Embedding(num_items, emb_size)
         self.users_emb.weight.data.uniform_(0, 0.5)

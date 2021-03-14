@@ -6,18 +6,16 @@ from torch.autograd import Variable
 
 from tqdm import tqdm
 
-if __package__ is None:
-    import sys
-    import os
-    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-    from model import model_MF
-    import data_process as dp
-else:
-    from ..model import model_MF
-    from . import data_process as dp
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))))
+from model.mf import mf
+import preprocessing as dp
+
 
 # %%
-class Train_MF():
+class Inference():
     def __init__(self, epoch = 100, emb_size = 100, lr = 1e-2, weight_decay = 0.0, if_cuda = False):
         self.num_epoch = epoch
         self.emb_size = emb_size
@@ -39,9 +37,9 @@ class Train_MF():
 
     def set_model(self):
         if self.if_cuda:
-            model = model_MF.MF_model(len(self.user_data), len(self.item_data), self.emb_size).cuda()
+            model = mf.MF(len(self.user_data), len(self.item_data), self.emb_size).cuda()
         else:
-            model = model_MF.MF_model(len(self.user_data), len(self.item_data), self.emb_size)
+            model = mf.MF(len(self.user_data), len(self.item_data), self.emb_size)
 
         self.model = model
 
@@ -93,8 +91,6 @@ class Train_MF():
         U =  self.model.users_emb.weight.data
         U = U.cpu().detach().numpy()
 
-        print("U : ")
-        print(U)
         self.U = U
 
     def set_V(self):
@@ -146,7 +142,7 @@ def get_personal_recommand(dp, model, user_id,user_id_str, recommand_num = 100):
 
 
 def recommand_letters(dir_path:str, split_read_data:int, target_user_id_list,  epoch = 100, emb_size = 100, lr = 1e-1, weight_decay = 0.0, if_cuda = False, recommand_num = 100, weight_followee=1):
-    data_process = dp.Data_processing(dir_path)
+    data_process = dp.Preprocessing(dir_path)
 
     data_process.set_MF_model_data(weight_followee = weight_followee)
 
@@ -157,7 +153,7 @@ def recommand_letters(dir_path:str, split_read_data:int, target_user_id_list,  e
     rating_test_data = data_process.test_rating_table
 
 
-    train_MF = Train_MF(epoch=epoch, emb_size=emb_size, lr=lr, weight_decay=weight_decay, if_cuda=if_cuda)
+    train_MF = Inference(epoch=epoch, emb_size=emb_size, lr=lr, weight_decay=weight_decay, if_cuda=if_cuda)
     
     train_MF.set_util_data(user_data, item_data)
     train_MF.set_train_data(rating_train_data)
@@ -175,17 +171,13 @@ def recommand_letters(dir_path:str, split_read_data:int, target_user_id_list,  e
     for user_id_str in target_user_id_list:
         user_id = data_process.user_to_index[user_id_str]
         temp = get_personal_recommand(data_process, train_MF, user_id,user_id_str, recommand_num)
-        if count < 2 :
-            print(user_id_str)
-            print(temp)
-            count += 1
         recommand_total_list[user_id_str] = temp
         
     return recommand_total_list
 
 
 # %%
-dir_path = "../../data/"
+dir_path = "../../../data/"
 
 user_list_path = os.path.join(dir_path, "predict/dev.users")
 user_list = []

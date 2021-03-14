@@ -10,30 +10,30 @@ import utils
 
 class Data_processing():
     def __init__(self, dir_path : str):
-        current_func_name = sys._getframe.f_code.co_name
+        current_func_name = "Data_processing: __init__"
 
-        if not os.path.exists(file_path):
+        if not os.path.exists(dir_path):
             print(f"[Error] {current_func_name} : file is not exist ==> file path :{dir_path}")
             raise FileNotFoundError
         
         self.__dir_path = dir_path
         self.set_util_data()
 
-    def set_util_data(self):
+    def set_util_data(self, split_date=20190222):
         self.set_meta_data(os.path.join(self.__dir_path, "metadata.json"))
         self.set_user_data(os.path.join(self.__dir_path, "users.json"))
-        self.set_read_data(os.path.join(self.__dir_path, "read/"))
+        self.set_read_data(os.path.join(self.__dir_path, "read/"), os.path.join(self.__dir_path, "read.pkl"), split_date=split_date)
 
 
     def set_MF_model_data(self, weight_followee = 2):
         self.set_following_list()
         self.set_writer_by_letter()
-        self.set_rating_table(self, is_train = True, weight_followee = weight_followee)
-        self.set_rating_table(self, is_train = False, weight_followee = weight_followee)
+        self.set_rating_table(is_train = True, weight_followee = weight_followee)
+        self.set_rating_table(is_train = False, weight_followee = weight_followee)
 
 
     def set_meta_data(self, file_path : str):
-        current_func_name = sys._getframe.f_code.co_name
+        current_func_name = "Data processing : set_meta_data"
 
         if not utils.check_file(file_path, ".json", current_func_name):
             return
@@ -44,7 +44,7 @@ class Data_processing():
 
 
     def set_user_data(self, file_path : str):
-        current_func_name = sys._getframe.f_code.co_name
+        current_func_name = "Data processing : set_user_data"
 
         if not utils.check_file(file_path, ".json", current_func_name):
             return
@@ -60,8 +60,9 @@ class Data_processing():
         # input:
         #   file_path : path of read directory
         ###############################
-
-        current_func_name = sys._getframe.f_code.co_name
+        print("[Info] preprocess_read_data Start.....")
+        current_func_name = "Data processing : preprocess_read_data"
+        file_path = os.path.join(dir_path, "read/")
 
         if not os.path.exists(file_path):
             print(f"[Error] {current_func_name} : file is not exist ==> file path :{file_path}")
@@ -80,10 +81,12 @@ class Data_processing():
                 for line in f:
                     line_list = line.split()
                     read_list.append({"file_name":file_name,"user_id":line_list[0],"content_id":line_list[1:]})
-
+                    
         read_list = pd.DataFrame(read_list)
         read_list.to_pickle(file_path + ".pkl")
 
+        print("[Info] preprocess_read_data Done!!!")
+    
         return True
 
 
@@ -96,24 +99,24 @@ class Data_processing():
         return read_train_data, read_test_data
 
 
-    def set_read_data(self, file_path : str, split_date: int):
+    def set_read_data(self, dir_path:str, file_path : str, split_date: int):
         #####################################
         # load read data
         # input :
         #   file_path : read pkl data
         #####################################
-        current_func_name = sys._getframe.f_code.co_name
+        current_func_name = "Data processing : set_read_data"
 
         if not utils.check_file(file_path, ".pkl", current_func_name):
-           if not self.preprocess_read_data(file_path):
+           if not self.preprocess_read_data(dir_path):
                return
             
         read_data = pd.read_pickle(file_path)
         
-        read_train_data, read_test_data = self.split_read_data(read_data, split_date)
+       # read_train_data, read_test_data = self.split_read_data(read_data, split_date)
 
-        self.__read_train_data = read_train_data
-        self.__read_test_data = read_test_data
+        self.__read_train_data = read_data
+        self.__read_test_data = read_data
 
         
     def set_writer_by_letter(self):
@@ -124,7 +127,7 @@ class Data_processing():
         
         writer_data = {}
         
-        meta_data = self.meta_data
+        meta_data = self.__meta_data
         
         for i, data in meta_data.iterrows():
             writer = data.user_id 
@@ -139,7 +142,7 @@ class Data_processing():
     def set_following_list(self):
         following_list = {}
 
-        user_data = self.user_data
+        user_data = self.__user_data
 
         for i, data in user_data.iterrows():
             user_id = data['id']
@@ -154,42 +157,48 @@ class Data_processing():
         user_read_list = defaultdict(int)
         userToIndex = {}
         writerToIndex = {}
+        indexToUser = {}
+        indexToWriter = {}
 
         if is_train :
-            read_data = self.read_train_data
+            read_data = self.__read_train_data
         else:
-            read_data = self.read_test_data
+            read_data = self.__read_test_data
 
+        self.set_following_list()
 
-        following_list = get_following_list()
-
+        following_list = self.__following_list
         user_idx = 0
         writer_idx = 0
         user_origin_read = {}
 
         for idx, data in read_data.iterrows():
-            user_id = data["user_id"]
+            user_id_str = data["user_id"]
             content_id_list = data["content_id"]
-            if user_id not in userToIndex:
-                userToIndex[user_id] = user_idx
-                user_origin_read[user_id] = set()
+            if user_id_str not in userToIndex:
+                userToIndex[user_id_str] = user_idx
+                indexToUser[user_idx] = user_id_str
+                user_origin_read[user_id_str] = set()
                 user_idx += 1
-            user_id = userToIndex[user_id]
+            user_id = userToIndex[user_id_str]
             for content_id in content_id_list:
-                user_origin_read[user_id].insert(content_id)
+                user_origin_read[user_id_str].add(content_id)
                 writer = content_id[:content_id.find("_")]
                 if writer not in writerToIndex:
                     writerToIndex[writer] = writer_idx
+                    indexToWriter[writer_idx] = writer
                     writer_idx += 1
-                writer = writerToIndex[writer]
-                key = (user_id, writer)
-                if writer in following_list[user_id]:
+                writer_id = writerToIndex[writer]
+                key = (user_id, writer_id)
+                if user_id_str in following_list and writer in following_list[user_id_str]:
                     user_read_list[key] += weight_followee
                 else:
                     user_read_list[key] += 1 
 
-        self.__user_set = userToIndex
-        self.__item_set = writerToIndex
+        self.__user_to_index = userToIndex
+        self.__writer_to_index = writerToIndex
+        self.__index_to_user = indexToUser
+        self.__index_to_writer = indexToWriter
         self.__user_origin_read = user_origin_read
 
         user_list = []
@@ -216,6 +225,16 @@ class Data_processing():
 
     def get_user_origin_read(self, user_id):
         return self.__user_origin_read[user_id]
+
+
+    @property
+    def index_to_user(self):
+        return self.__index_to_user
+
+
+    @property
+    def index_to_writer(self):
+        return self.__index_to_writer
 
 
     @property
@@ -255,12 +274,12 @@ class Data_processing():
 
     @property
     def user_to_index(self):
-        return self.__user_set
+        return self.__user_to_index
 
 
     @property
     def writer_to_index(self):
-        return self.__item_set
+        return self.__writer_to_index
 
 
     @property

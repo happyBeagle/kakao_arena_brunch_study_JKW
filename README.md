@@ -22,10 +22,10 @@ $> tree -d
 │     └── /mf
 │          ├── mf.py
 │          └── inference.py
-├── ensemble.py : model_1.py + model_2.py + model_3.py
+├── ensemble.py : user2vec + model + mf
 ├── evaluate.py : MAP, NDCG, EntDiv
 ├── main.py
 ├── /recommend
-│     └── requirements.txt : 제출 파일
+│     └── recommend.txt : 제출 파일
 └── util.py : 그 외 필요한 기능
 ``` 

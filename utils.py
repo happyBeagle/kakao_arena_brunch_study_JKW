@@ -13,7 +13,8 @@ def check_file(path:str, file_type:str, call_func:str)->bool:
         return False
     
     f_name, f_type = os.path.splitext(path)
-    if f_type is not file_type:
+
+    if f_type != file_type:
         print(f"[Error] {call_func} : file type is not {file_type} ==> file type :{f_type}")
         return False
     return True

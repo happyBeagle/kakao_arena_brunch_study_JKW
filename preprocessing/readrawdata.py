@@ -9,7 +9,7 @@ from collections import defaultdict
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import utils
-from singleton import Singleton
+from preprocessing.singleton import Singleton
 
 # %%
 class ReadRawData(metaclass=Singleton):
@@ -73,7 +73,7 @@ class ReadRawData(metaclass=Singleton):
                     read_list.append({"file_name":file_name,"user_id":line_list[0],"content_id":line_list[1:]})
                     
         read_list = pd.DataFrame(read_list)
-        read_list.to_pickle(file_path + ".pkl")
+        read_list.to_pickle(file_path[:-1] + ".pkl")
 
         print("[Info] Preprocessing : preprocess_read_data.....Done!!!")
     
@@ -85,7 +85,7 @@ class ReadRawData(metaclass=Singleton):
 
         file_path = os.path.join(self.__dir_path, "read.pkl")
         if not utils.check_file(file_path, ".pkl", "Preprocessing : get_read"):
-           if not self.preprocess_read_data():
+           if not self.preprocessing_read():
                return
             
         read = pd.read_pickle(file_path)
@@ -103,7 +103,7 @@ class ReadRawData(metaclass=Singleton):
     @property
     def magazine(self):
         return self.__magazine
-    
+
     @property
     def read(self):
         return self.__read

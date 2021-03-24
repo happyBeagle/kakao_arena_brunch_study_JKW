@@ -20,7 +20,7 @@ class ReadRawData(metaclass=Singleton):
         self.__metadata = self.get_metadata()
         self.__users = self.get_users()
         self.__magazine = self.get_magazine()
-        self.__raed = self.get_read()
+        self.__read = self.get_read()
         self.__dev_users = self.get_dev_users_data()
         self.__test_users = self.get_test_users_data()
 

@@ -7,9 +7,8 @@ import sys
 from tqdm import tqdm
 from collections import defaultdict  
 
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import utils
-from singleton import Singleton
+from preprocessing.singleton import Singleton
 
 # %%
 class ReadRawData(metaclass=Singleton):
@@ -21,7 +20,7 @@ class ReadRawData(metaclass=Singleton):
         self.__metadata = self.get_metadata()
         self.__users = self.get_users()
         self.__magazine = self.get_magazine()
-        self.__raed = self.get_read()
+        self.__read = self.get_read()
 
     def get_metadata(self):
         print("[Info] Preprocessing : get metadata....", end="")

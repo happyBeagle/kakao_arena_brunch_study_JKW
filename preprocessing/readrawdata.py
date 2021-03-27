@@ -22,9 +22,11 @@ class ReadRawData(metaclass=Singleton):
         self.__users = self.get_users()
         self.__magazine = self.get_magazine()
         self.__raed = self.get_read()
+        self.__dev_users = self.get_dev_users_data()
+        self.__test_users = self.get_test_users_data()
 
     def get_metadata(self):
-        print("[Info] Preprocessing : get metadata....", end="")
+        print("[Info] Preprocessing : get metadata...", end="")
         file_path = os.path.join(self.__dir_path,  "metadata.json")
         if not utils.check_file(file_path, ".json", "Preprocessing : get_metadata"):
             return
@@ -33,7 +35,7 @@ class ReadRawData(metaclass=Singleton):
         return metadata
 
     def get_users(self):
-        print("[Info] Preprocessing : get users....", end="")
+        print("[Info] Preprocessing : get users...", end="")
         file_path = os.path.join(self.__dir_path, "users.json")
         if not utils.check_file(file_path, ".json", "Preprocessing : get_users"):
             return
@@ -42,7 +44,7 @@ class ReadRawData(metaclass=Singleton):
         return users
 
     def get_magazine(self):
-        print("[Info] Preprocessing : get magazine.....", end="")
+        print("[Info] Preprocessing : get magazine...", end="")
         file_path = os.path.join(self.__dir_path, "magazine.json")
         if not utils.check_file(file_path, ".json", "Preprocessing : get_magazine"):
             return
@@ -51,11 +53,11 @@ class ReadRawData(metaclass=Singleton):
         return magazine
 
     def preprocessing_read(self):
-        print("[Info] Preprocessing : preprocessing_read Start.....")
+        print("[Info] Preprocessing : preprocessing_read Start...")
         file_path = os.path.join(self.__dir_path, "read/")
 
         if not os.path.exists(file_path):
-            print(f"[Error] Preprocessing : preprocessing_read....file is not exist")
+            print(f"[Error] Preprocessing : preprocessing_read...file is not exist")
             return False
         
         # delete .2019010120_2019010121.un~
@@ -75,14 +77,12 @@ class ReadRawData(metaclass=Singleton):
         read_list = pd.DataFrame(read_list)
         read_list.to_pickle(file_path[:-1] + ".pkl")
 
-        print("[Info] Preprocessing : preprocess_read_data.....Done!!!")
+        print("[Info] Preprocessing : preprocess_read_data...Done!!!")
     
         return True
 
-
     def get_read(self):
         print("[Info] Preprocessing : get read...", end="")
-
         file_path = os.path.join(self.__dir_path, "read.pkl")
         if not utils.check_file(file_path, ".pkl", "Preprocessing : get_read"):
            if not self.preprocessing_read():
@@ -91,7 +91,27 @@ class ReadRawData(metaclass=Singleton):
         read = pd.read_pickle(file_path)
         print("Done!!")
         return read
- 
+
+    def get_dev_users_data(self):
+        # print("[Info] Preprocessing : get dev users data...", end="")
+        users_list = []
+        file_path = os.path.join(self.__dir_path, "predict", 'dev.users')
+        with open(file_path, 'r') as f:
+            for line in f:
+                users_list.append(line.strip())
+        # print("Done!!")
+        return users_list
+
+    def get_test_users_data(self):
+        # print("[Info] Preprocessing : get test users data...", end="")
+        users_list = []
+        file_path = os.path.join(self.__dir_path, "predict", 'test.users')
+        with open(file_path, 'r') as f:
+            for line in f:
+                users_list.append(line.strip())
+        # print("Done!!")
+        return users_list
+
     @property
     def metadata(self):
         return self.__metadata
@@ -107,4 +127,12 @@ class ReadRawData(metaclass=Singleton):
     @property
     def read(self):
         return self.__read
+
+    @property
+    def dev_users(self):
+        return self.__dev_users
+
+    @property
+    def test_users(self):
+        return self.__test_users
 # %%

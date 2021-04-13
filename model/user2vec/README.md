@@ -23,3 +23,4 @@ User2Vec을 사용한 콘텐츠 기반 필터링의 알고리즘은 다음과 �
 
 # Result
 
+<img width="1025" alt="스크린샷 2021-04-13 20 15 05" src="https://user-images.githubusercontent.com/55614265/114550812-9778b180-9c9d-11eb-8c8b-dffeca802d3e.png">

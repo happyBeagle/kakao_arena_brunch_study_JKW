@@ -71,9 +71,12 @@ from utils import *
 #%%
 preprocessing = Preprocessing_sasrec('/content/drive/MyDrive/brunch/data')
 item_num = max(preprocessing.content2num.values())
+#%%
 from torch.utils.data.dataset import random_split
 train_dataset = BrunchDataset(preprocessing.train_df, item_num)
-train_dataset, val_dataset = random_split(train_dataset, [90, 10])
+train_len = int(0.9*len(train_dataset))
+valid_len = len(train_dataset) - train_len
+train_dataset, val_dataset = random_split(train_dataset, [train_len, valid_len])
 train_loader = torch.utils.data.DataLoader(
     train_dataset,
     batch_size=32,

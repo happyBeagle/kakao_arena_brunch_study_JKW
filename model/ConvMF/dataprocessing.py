@@ -9,15 +9,19 @@ from model.ConvMF.tokenizer import Tokenizer
 from scipy.sparse.csr import csr_matrix
 import random
 import utils
+from preprocessing.singleton import Singleton
+
 # %%
-class DataProcessing:
-    def __init__(self, dir_path = "../data", save_path="./model/ConvMF/data", do_split_data=True, following_rate = 1, ratio = 0.2):
+class DataProcessing(metaclass=Singleton):
+    def __init__(self, dir_path = "../data", save_path="/content/drive/MyDrive/kakao arena/kakao_arena_brunch_study_JKW/model/ConvMF/data", do_split_data=False, following_rate = 1, ratio = 0.2):
         self.__read_data = ReadRawData(dir_path)
         self.__item_list, self.__item_index = self.__get_info_item()
         self.__user_list, self.__user_index = self.__get_read_user()
         # set R data
         self.__following_list = self.__get_following_list()
         self.__rate_table = self.__get_rate_table(following_rate)
+        self.__content_view_list = self.__get_content_view_list()
+        self.__already_read_list = self.__get_already_read_list()
         if do_split_data:
             self.__train, self.__valid, self.__test = self.__split_data(ratio)
             self.__save_train_valid_test(save_path, self.__train, "train")
@@ -31,7 +35,35 @@ class DataProcessing:
         # set D
         self.__content_info_list, self.__max_len = self.__get_content_data()
         self.__x_sequence, self.__vocab_size = self.__process_content_data() 
+        self.__recommend_user_list = self.__read_data.dev_users
+        del self.__read_data
 
+    def __get_content_view_list(self):
+        print("[Info] DataProcessing : get content view list....", end="")
+        read = self.__read_data.read
+
+        content_view_list = {}
+        for i, data in read.iterrows():
+            for content_id in data.content_id:
+                if content_id not in content_view_list:
+                    content_view_list[content_id] = 0
+                content_view_list[content_id] += 1
+        content_view_list = sorted(content_view_list.items(), key=lambda x : x[1], reverse=True)
+        return content_view_list
+
+    def __get_already_read_list(self):
+        print("[Info] DataProcessing : get already read list....", end="")
+        read = self.__read_data.read
+        
+        already_read_list = {}
+        for i, data in read.iterrows():
+            if data.user_id not in already_read_list:
+                already_read_list[data.user_id] = set()
+            for content_id in data.content_id:
+                already_read_list[data.user_id].add(content_id)
+        
+        return already_read_list
+        
     def __get_following_list(self):
         print("[Info] DataProcessing : get following list....", end="")
         users = self.__read_data.users
@@ -285,6 +317,14 @@ class DataProcessing:
         return x_sequence, tokenizer.vocab_size
 
     @property
+    def item_list(self):
+        return self.__item_list
+        
+    @property
+    def user_list(self):
+        return self.__user_list
+
+    @property
     def rate_table(self):
         return self.__rate_table
     
@@ -316,5 +356,16 @@ class DataProcessing:
     def vocab_size(self):
         return self.__vocab_size
 
+    @property
+    def recommend_user_list(self):
+        return self.__recommend_user_list
+
+    @property
+    def already_read_list(self):
+        return self.__already_read_list
+    
+    @property
+    def content_view_list(self):
+        return self.__content_view_list
 
 # %%

@@ -7,9 +7,12 @@ import numpy as np
 
 from torch.autograd import Variable
 
+import gc
 class CNN(nn.Module):
     def __init__(self, output_dimension, vocab_size, emb_dimension, dropout_rate, max_len, n_filters, if_cuda):
         super(CNN, self).__init__()
+        gc.collect()
+        torch.cuda.empty_cache()
 
         self.max_len = max_len
         self.emb_dimension = emb_dimension
@@ -76,11 +79,21 @@ class TrainCNN():
         if if_cuda:
             self.model = self.model.cuda()
 
-    def train(self, data_loader):
+    def train(self, batch_size, X_train, V):
         optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
         for epoch in range(self.epochs):
-            for x, y in data_loader:
+            n_batch =  len(X_train) // batch_size
+            for i in range(n_batch + 1):
+                begin_idx, end_idx = i * batch_size, (i + 1) * batch_size
+                
+                if i < n_batch:
+                    x = X_train[begin_idx:end_idx]
+                    y = V[begin_idx:end_idx]
+                else:
+                    x = X_train[begin_idx:]
+                    y = V[begin_idx:]
+
                 x = Variable(torch.from_numpy(x.astype('int64')).long())
                 y = Variable(torch.from_numpy(y))
 
@@ -95,10 +108,25 @@ class TrainCNN():
                 loss.backward()
                 optimizer.step()
 
-    def get_projection(self, input):
-        inputs = Variable(torch.from_numpy(input.astype('int64')).long())
-
-        if self.if_cuda:
-            inputs = inputs.cuda()
-        output = self.model(inputs)
-        return output.cpu().data.numpy()
+    def get_projection(self, batch_size, X_train):
+        output_list = np.array([], dtype="float")
+        with torch.no_grad():
+            n_batch =  len(X_train) // batch_size
+            for i in range(n_batch + 1):
+                begin_idx, end_idx = i * batch_size, (i + 1) * batch_size
+                
+                if i < n_batch:
+                    x = X_train[begin_idx:end_idx]
+                else:
+                    x = X_train[begin_idx:]
+                
+                x = Variable(torch.from_numpy(x.astype('int64')).long())
+                
+                if self.if_cuda:
+                    x = x.cuda()
+                predict = self.model(x)
+                if len(output_list) == 0:
+                    output_list = predict.cpu().numpy()
+                else:
+                    output_list = np.concatenate((output_list, predict.cpu().numpy()), axis=0)
+        return output_list

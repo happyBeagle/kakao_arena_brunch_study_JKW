@@ -1,6 +1,5 @@
-
+# %%
 from transformers import ElectraModel, ElectraTokenizer
-
 
 class Tokenizer:
     def __init__(self):
@@ -11,3 +10,5 @@ class Tokenizer:
         tokens = self.tokenizer.tokenize(string)
         token_ids = self.tokenizer.convert_tokens_to_ids(tokens)
         return token_ids
+
+# %%

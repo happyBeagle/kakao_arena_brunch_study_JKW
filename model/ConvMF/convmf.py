@@ -1,9 +1,9 @@
-# %%
 import numpy as np 
-from model.ConvMF.convmodel import CNN as CNN
-# %%
+import math
+from model.ConvMF.convmodel import TrainCNN
+
 class ConvMF:
-    def __init__(self, rate_table, vocab_size, if_cuda, cnn_epoch = 20, cnn_lr = 1e-4,
+    def __init__(self, rate_table, vocab_size, if_cuda, cnn_input, cnn_epoch = 20, cnn_lr = 1e-4, 
                   lambda_u=1, lambda_v=100, dimension=50,
                  dropout_rate=0.2, emb_dim=200, max_len=200, num_kernel_per_ws=100):
         self.__num_user = rate_table.shape[0]
@@ -13,16 +13,15 @@ class ConvMF:
         self.__lambda_u = lambda_u
         self.__lambda_v = lambda_v
         self.__dimension = dimension
-        self.__item_w = np.ones(num_item, dtype=float)
-     
-        self.__train_cnn = TrainCNN(cnn_epoch, cnn_lr, dimension, vocab_size, emb_dimension, 
+        self.__cnn_input = cnn_input
+        self.__train_cnn = TrainCNN(cnn_epoch, cnn_lr, dimension, vocab_size, emb_dim, 
                         dropout_rate, max_len, num_kernel_per_ws, if_cuda)
              
-        self.__theta = train_cnn.get_projection_layer(cnn_input)
+        self.__theta = self.__train_cnn.get_projection(50, cnn_input)
         self.__U = np.random.uniform(size=(self.__num_user, dimension))
         self.__V = self.__theta
 
-    def train(self, cnn_input, max_epochs, train_user, train_item, valid_user, test_user):
+    def train(self, max_epochs, train_user, train_item, valid_user, test_user):
         a, b = 1, 0
 
         PREV_LOSS =1e-50
@@ -35,7 +34,10 @@ class ConvMF:
         pre_val_eval = 1e10
         best_tr_eval, best_val_eval, best_te_eval = 1e10, 1e10, 1e10
 
-   
+        
+        self.__item_weight = np.array([math.sqrt(len(i)) for i in Train_R_J], dtype=float)
+        self.__item_weight *=(float(self.__num_item) / self.__item_weight.sum())
+
         endure_count = 5
         count = 0
         
@@ -51,7 +53,7 @@ class ConvMF:
                 R_i = Train_R_I[i]
                 A = VV + (a - b) * (V_i.T.dot(V_i))
                 B = (a * V_i * np.tile(R_i, (self.__dimension, 1)).T).sum(0)
-
+            
                 self.__U[i] = np.linalg.solve(A, B)
 
                 sub_loss[i] = -0.5 * self.__lambda_u * np.dot(self.__U[i], self.__U[i])
@@ -68,16 +70,17 @@ class ConvMF:
                 tmp_A = UU + (a - b) * (U_j.T.dot(U_j))
                 A = tmp_A + self.__lambda_v * self.__item_weight[j] * np.eye(self.__dimension)
                 B = (a * U_j * np.tile(R_j, (self.__dimension, 1)).T).sum(0) + self.__lambda_v * self.__item_weight[j] * self.__theta[j]
-                self.__V[j] = np.linalg.solve(A, B)
-
+                temp = np.linalg.solve(A, B)
+                tmp = self.__V[j]
+                self.__V[j] = temp
                 sub_loss[j] = -0.5 * np.square(R_j * a).sum()
                 sub_loss[j] = sub_loss[j] + a * np.sum((U_j.dot(self.__V[j])) * R_j)
                 sub_loss[j] = sub_loss[j] - 0.5 * np.dot(self.__V[j].dot(tmp_A), self.__V[j])
 
             loss = loss + np.sum(sub_loss)
 
-            self.__train_cnn.train(cnn_input, self.__V)
-            self.__theta = self.__train_cnn.get_projection_layer(cnn_input)
+            self.__train_cnn.train(50, self.__cnn_input, self.__V)
+            self.__theta = self.__train_cnn.get_projection(50, self.__cnn_input)
 
             tr_eval = self.eval_RMSE(Train_R_I, train_user[0])
             val_eval = self.eval_RMSE(Valid_R, valid_user[0])
@@ -85,12 +88,16 @@ class ConvMF:
 
             converge = abs((loss - PREV_LOSS) / PREV_LOSS)
 
+            
             if val_eval < pre_val_eval:
                 best_tr_eval, best_val_eval, best_te_eval = tr_eval, val_eval, te_eval
             else:
                 count += 1
 
             pre_val_eval = val_eval
+
+            if e % 10 == 0:
+                print(f"[{e} epoch]\t Train: {tr_eval:.5f}, Valid: {val_eval:.5f}, Test: {te_eval:.5f}\n")
 
             if count == endure_count:
                 break

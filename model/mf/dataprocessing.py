@@ -1,11 +1,11 @@
-# %%
+
 import pandas as pd
 
 import sys
 import os
 from tqdm.notebook import tqdm
 from preprocessing.readrawdata import ReadRawData
-# %%
+
 class DataProcessing:
     '''
     data processing class for MF model.
@@ -191,4 +191,4 @@ class DataProcessing:
     @property
     def count_view_list(self):
         return self.__count_view_list
-# %%
+

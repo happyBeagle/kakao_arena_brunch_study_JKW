@@ -7,10 +7,9 @@ import sys
 from tqdm import tqdm
 from collections import defaultdict  
 
-
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+# import utils
 from utils import check_file
-
 from preprocessing.singleton import Singleton
 
 # %%
@@ -137,5 +136,4 @@ class ReadRawData(metaclass=Singleton):
     @property
     def test_users(self):
         return self.__test_users
-
 # %%

@@ -3,28 +3,36 @@
 ```
 $> tree -d
 .
-├── config.py : 경로 설정
 ├── data
 │     ├── /contents
 │     ├── /predict
 │     ├── /read
 │     ├── magazine.json
 │     ├── metadata.json
-│     ├── users.json
-├── preprocessing.py : model 학습을 위한 전처리 (통합), 주석 처리
+│     └── users.json
+├── /data_processing
+│     ├── EDA_data.ipynb
+│     ├── EDA_magazine.ipynb
+│     ├── EDA_metadata.ipynb
+│     ├── EDA_predict.ipynb
+│     ├── EDA_read.ipynb
+│     └── EDA_users.ipynb
+├── /preprocessing
+│     ├── readrawdata.py
+│     └── singleton.py
 ├── /model
 │     ├── /user2vec
+│     │    ├── dataprocessing.py
 │     │    ├── user2vec.py
 │     │    └── inference.py
-│     ├── /model
-│     │    ├── model.py 
-│     │    └── inference.py
+│     ├── /ConvMF
+│     │    ├── dataprocessing.py
+│     │    ├── convmf.py
+│     │    ├── convmodel.py
+│     │    └── tokenizer.py
 │     └── /mf
 │          ├── mf.py
 │          └── inference.py
-├── ensemble.py : user2vec + model + mf
-├── evaluate.py : MAP, NDCG, EntDiv
-├── main.py
 ├── /recommend
 │     └── recommend.txt : 제출 파일
 └── util.py : 그 외 필요한 기능

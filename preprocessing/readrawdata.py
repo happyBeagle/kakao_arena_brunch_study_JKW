@@ -7,7 +7,10 @@ import sys
 from tqdm import tqdm
 from collections import defaultdict  
 
-import utils
+
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from utils import check_file
+
 from preprocessing.singleton import Singleton
 
 # %%
@@ -27,7 +30,7 @@ class ReadRawData(metaclass=Singleton):
     def get_metadata(self):
         print("[Info] Preprocessing : get metadata...", end="")
         file_path = os.path.join(self.__dir_path,  "metadata.json")
-        if not utils.check_file(file_path, ".json", "Preprocessing : get_metadata"):
+        if not check_file(file_path, ".json", "Preprocessing : get_metadata"):
             return
         metadata = pd.read_json(file_path, lines=True)
         print("Done!!")
@@ -36,7 +39,7 @@ class ReadRawData(metaclass=Singleton):
     def get_users(self):
         print("[Info] Preprocessing : get users...", end="")
         file_path = os.path.join(self.__dir_path, "users.json")
-        if not utils.check_file(file_path, ".json", "Preprocessing : get_users"):
+        if not check_file(file_path, ".json", "Preprocessing : get_users"):
             return
         users = pd.read_json(file_path, lines=True)
         print("Done!!")
@@ -45,7 +48,7 @@ class ReadRawData(metaclass=Singleton):
     def get_magazine(self):
         print("[Info] Preprocessing : get magazine...", end="")
         file_path = os.path.join(self.__dir_path, "magazine.json")
-        if not utils.check_file(file_path, ".json", "Preprocessing : get_magazine"):
+        if not check_file(file_path, ".json", "Preprocessing : get_magazine"):
             return
         magazine = pd.read_json(file_path, lines=True)
         print("Done!!")
@@ -83,7 +86,7 @@ class ReadRawData(metaclass=Singleton):
     def get_read(self):
         print("[Info] Preprocessing : get read...", end="")
         file_path = os.path.join(self.__dir_path, "read.pkl")
-        if not utils.check_file(file_path, ".pkl", "Preprocessing : get_read"):
+        if not check_file(file_path, ".pkl", "Preprocessing : get_read"):
            if not self.preprocessing_read():
                return
             

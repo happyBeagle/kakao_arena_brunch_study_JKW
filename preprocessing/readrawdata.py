@@ -134,3 +134,5 @@ class ReadRawData(metaclass=Singleton):
     @property
     def test_users(self):
         return self.__test_users
+
+# %%

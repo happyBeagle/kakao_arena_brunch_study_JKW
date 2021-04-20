@@ -23,7 +23,7 @@ def get_config():
     config.PATH.SAVEDIR = './checkpoint'
     config.PATH.ROOT = '/opt/ml/input/data/train/images'
     config.PATH.RESUME_1 = '/opt/ml/code/checkpoint/DenseNet_9'
-    config.PATH.TEST_1 = '/opt/ml/code/checkpoint/DenseNet_10'
+    config.PATH.TEST = '/content/drive/MyDrive/brunch/kakao_arena_brunch_study_JKW/model/sasrec/tmp/Sasrec_5'
     
 
     config.DATASET.RATIO = 0.15

@@ -64,7 +64,7 @@ class SASRec(torch.nn.Module):
             # self.pos_sigmoid = torch.nn.Sigmoid()
             # self.neg_sigmoid = torch.nn.Sigmoid()
 
-    def log2feats(self, log_seqs, src_mask): # (B, max_len)
+    def log2feats(self, log_seqs): # (B, max_len)
         seqs = self.item_emb(torch.LongTensor(log_seqs).to(self.dev))  # (B, max_len) -> (B, max_len, hidden_size)
         seqs *= self.item_emb.embedding_dim ** 0.5
         positions = np.tile(np.array(range(log_seqs.shape[1])), [log_seqs.shape[0], 1])
@@ -96,7 +96,7 @@ class SASRec(torch.nn.Module):
         return log_feats
 
     def forward(self, log_seqs, pos_seqs, neg_seqs, src_mask): # for training        
-        log_feats = self.log2feats(log_seqs, src_mask) # user_ids hasn't been used yet
+        log_feats = self.log2feats(log_seqs) # user_ids hasn't been used yet
 
         pos_embs = self.item_emb(torch.LongTensor(pos_seqs).to(self.dev))
         neg_embs = self.item_emb(torch.LongTensor(neg_seqs).to(self.dev))

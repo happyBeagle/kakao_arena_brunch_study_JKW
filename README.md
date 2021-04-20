@@ -35,12 +35,12 @@ $> tree -d
 │     │     └── inference.py
 │     └── /sasrec
 │          ├── /data_loader
-|          │    └── dataset.py
+│          │    └── dataset.py
 │          ├── /model
-|          │    ├── loss.py
-|          │    └── model.py
+│          │    ├── loss.py
+│          │    └── model.py
 │          ├── /trainer
-|          │    └── trainer.py
+│          │    └── trainer.py
 │          ├── config.py
 │          ├── datapreprocessing.py
 │          ├── inference.py

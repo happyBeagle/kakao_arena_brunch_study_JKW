@@ -30,9 +30,22 @@ $> tree -d
 │     │    ├── convmf.py
 │     │    ├── convmodel.py
 │     │    └── tokenizer.py
-│     └── /mf
-│          ├── mf.py
-│          └── inference.py
+│     ├── /mf
+│     │     ├── mf.py
+│     │     └── inference.py
+│     └── /sasrec
+│          ├── /data_loader
+|          │    └── dataset.py
+│          ├── /model
+|          │    ├── loss.py
+|          │    └── model.py
+│          ├── /trainer
+|          │    └── trainer.py
+│          ├── config.py
+│          ├── datapreprocessing.py
+│          ├── inference.py
+│          ├── train.py
+│          └── utils.py
 ├── /recommend
 │     └── recommend.txt : 제출 파일
 └── util.py : 그 외 필요한 기능
